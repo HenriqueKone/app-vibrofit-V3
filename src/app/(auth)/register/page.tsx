@@ -1,0 +1,194 @@
+'use client'
+
+import { useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Card } from '@/components/ui/card'
+import { Alert, AlertDescription } from '@/components/ui/alert'
+import { Dumbbell, Mail, Lock, User, AlertCircle, ArrowLeft } from 'lucide-react'
+import { supabase } from '@/lib/supabase'
+
+export default function RegisterPage() {
+  const router = useRouter()
+  const [name, setName] = useState('')
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
+  const [error, setError] = useState('')
+  const [loading, setLoading] = useState(false)
+
+  async function handleRegister(e: React.FormEvent) {
+    e.preventDefault()
+    setError('')
+
+    if (password !== confirmPassword) {
+      setError('As senhas não coincidem')
+      return
+    }
+
+    if (password.length < 6) {
+      setError('A senha deve ter pelo menos 6 caracteres')
+      return
+    }
+
+    setLoading(true)
+
+    try {
+      const { error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            name: name,
+          }
+        }
+      })
+
+      if (error) throw error
+
+      window.location.href = '/dashboard'
+    } catch (error: any) {
+      setError(error.message || 'Erro ao criar conta')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  function handleBack() {
+    window.location.href = '/'
+  }
+
+  function handleLogin() {
+    window.location.href = '/login'
+  }
+
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 p-4">
+      <div className="w-full max-w-md space-y-8">
+        {/* Back Button */}
+        <Button
+          variant="ghost"
+          onClick={handleBack}
+          className="text-white hover:text-white/80 gap-2"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          Voltar
+        </Button>
+
+        {/* Logo */}
+        <div className="text-center space-y-4">
+          <div className="flex justify-center">
+            <div className="bg-gradient-to-br from-cyan-500 to-purple-500 p-6 rounded-2xl shadow-2xl">
+              <Dumbbell className="w-16 h-16 text-white" />
+            </div>
+          </div>
+          <div>
+            <h1 className="text-4xl font-bold bg-gradient-to-r from-cyan-400 to-purple-400 bg-clip-text text-transparent">
+              Comece sua jornada
+            </h1>
+            <p className="text-gray-400 mt-2">Crie sua conta e transforme-se</p>
+          </div>
+        </div>
+
+        {/* Register Form */}
+        <Card className="bg-slate-800/50 border-slate-700 backdrop-blur-sm p-8">
+          <form onSubmit={handleRegister} className="space-y-6">
+            {error && (
+              <Alert className="bg-red-500/10 border-red-500/50 text-red-400">
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription>{error}</AlertDescription>
+              </Alert>
+            )}
+
+            <div className="space-y-2">
+              <Label htmlFor="name" className="text-gray-300 flex items-center gap-2">
+                <User className="w-4 h-4" />
+                Nome
+              </Label>
+              <Input
+                id="name"
+                type="text"
+                placeholder="Seu nome"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                required
+                className="bg-slate-700 border-slate-600 text-white placeholder:text-gray-500 focus:border-cyan-500 focus:ring-cyan-500"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="email" className="text-gray-300 flex items-center gap-2">
+                <Mail className="w-4 h-4" />
+                Email
+              </Label>
+              <Input
+                id="email"
+                type="email"
+                placeholder="seu@email.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                className="bg-slate-700 border-slate-600 text-white placeholder:text-gray-500 focus:border-cyan-500 focus:ring-cyan-500"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="password" className="text-gray-300 flex items-center gap-2">
+                <Lock className="w-4 h-4" />
+                Senha
+              </Label>
+              <Input
+                id="password"
+                type="password"
+                placeholder="••••••••"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                className="bg-slate-700 border-slate-600 text-white placeholder:text-gray-500 focus:border-cyan-500 focus:ring-cyan-500"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="confirmPassword" className="text-gray-300 flex items-center gap-2">
+                <Lock className="w-4 h-4" />
+                Confirmar Senha
+              </Label>
+              <Input
+                id="confirmPassword"
+                type="password"
+                placeholder="••••••••"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                required
+                className="bg-slate-700 border-slate-600 text-white placeholder:text-gray-500 focus:border-cyan-500 focus:ring-cyan-500"
+              />
+            </div>
+
+            <Button
+              type="submit"
+              disabled={loading}
+              className="w-full bg-gradient-to-r from-cyan-500 to-purple-500 hover:from-cyan-600 hover:to-purple-600 text-white font-semibold h-12 shadow-lg hover:shadow-xl transition-all hover:scale-105"
+            >
+              {loading ? 'Criando conta...' : 'Criar Conta'}
+            </Button>
+          </form>
+        </Card>
+
+        {/* Login Link */}
+        <div className="text-center">
+          <p className="text-gray-400">
+            Já tem uma conta?{' '}
+            <button
+              onClick={handleLogin}
+              className="text-cyan-400 hover:text-cyan-300 font-semibold"
+            >
+              Entrar
+            </button>
+          </p>
+        </div>
+      </div>
+    </div>
+  )
+}
